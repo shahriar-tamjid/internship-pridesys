@@ -1,87 +1,112 @@
 REM ********************************************************************
 REM Create the REGIONS table to hold region information for locations
 REM HR.LOCATIONS table has a foreign key to this table.
-       
-CREATE TABLE regions
-   ( region_id NUMBER 
-   CONSTRAINT region_id_nn NOT NULL 
-   , region_name VARCHAR2(25) 
-   );
-CREATE UNIQUE INDEX reg_id_pk
-         ON regions (region_id);
-ALTER TABLE regions
-         ADD ( CONSTRAINT reg_id_pk
-   PRIMARY KEY (region_id)
-   ) ;
+
+-- Create "regions" table
+CREATE TABLE regions (
+    region_id NUMBER 
+    CONSTRAINT region_id_nn NOT NULL,
+    region_name VARCHAR2(25)
+    );
+
+-- A CONSTRAINT in SQL is a rule that enforces a specific condition on the data in a table.
+-- There are different types of CONSTRAINT: NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY etc.
+
+-- Making "region_id" as unique value
+CREATE UNIQUE INDEX reg_id_pk ON regions (region_id);
+
+-- Making "region_id" as PRIMARY KEY
+ALTER TABLE regions ADD (
+    CONSTRAINT reg_id_pk PRIMARY KEY (region_id)
+    );
+
+-- Check the "regions" table
+DESC regions;
+
 REM ********************************************************************
 REM Create the COUNTRIES table to hold country information for customers
 REM and company locations. 
 REM OE.CUSTOMERS table and HR.LOCATIONS have a foreign key to this table.
        
-CREATE TABLE countries 
-   ( country_id CHAR(2) 
-   CONSTRAINT country_id_nn NOT NULL 
-   , country_name VARCHAR2(40) 
-   , region_id NUMBER 
-   , CONSTRAINT country_c_id_pk 
-   PRIMARY KEY (country_id) 
-   ) 
-   ORGANIZATION INDEX; 
-ALTER TABLE countries
-         ADD ( CONSTRAINT countr_reg_fk
-   FOREIGN KEY (region_id)
-   REFERENCES regions(region_id) 
-   ) ;
+-- Create "countries" table with "country_id" PRIMARY KEY
+CREATE TABLE countries (
+    country_id CHAR(2) NOT NULL,
+    country_name VARCHAR2(40),
+    region_id NUMBER,
+    CONSTRAINT country_c_id_pk PRIMARY KEY (country_id) 
+   );
+   
+-- Make "region_id" as FOREIGN KEY
+ALTER TABLE countries ADD (
+    CONSTRAINT countr_reg_fk
+    FOREIGN KEY (region_id) REFERENCES regions(region_id)
+    );
+
+DESC countries;
+
 REM ********************************************************************
 REM Create the LOCATIONS table to hold address information for company departments.
 REM HR.DEPARTMENTS has a foreign key to this table.
-       
-CREATE TABLE locations
-   ( location_id NUMBER(4)
-   , street_address VARCHAR2(40)
-   , postal_code VARCHAR2(12)
-   , city VARCHAR2(30)
-   CONSTRAINT loc_city_nn NOT NULL
-   , state_province VARCHAR2(25)
-   , country_id CHAR(2)
-   ) ;
-CREATE UNIQUE INDEX loc_id_pk
-         ON locations (location_id) ;
-ALTER TABLE locations
-         ADD ( CONSTRAINT loc_id_pk
-   PRIMARY KEY (location_id)
-   , CONSTRAINT loc_c_id_fk
-   FOREIGN KEY (country_id)
-   REFERENCES countries(country_id) 
-   ) ;
+
+-- Create "locations" table where "city" is NOT NULL
+CREATE TABLE locations(
+    location_id NUMBER(4),
+    street_address VARCHAR2(40),
+    postal_code VARCHAR2(12),
+    city VARCHAR2(30) CONSTRAINT loc_city_nn NOT NULL,
+    state_province VARCHAR2(25),
+    country_id CHAR(2)
+   );
+
+-- Make "location_id" unique value
+CREATE UNIQUE INDEX loc_id_pk ON locations (location_id);
+
+-- Make "location_id" as PRIMARY KEY and "country_id" as FOREIGN KEY
+ALTER TABLE locations ADD (
+    CONSTRAINT loc_id_pk
+    PRIMARY KEY (location_id),
+    CONSTRAINT loc_c_id_fk
+    FOREIGN KEY (country_id) REFERENCES countries(country_id)
+    );
+
+DESC locations;
+
 Rem Useful for any subsequent addition of rows to locations table
 Rem Starts with 3300
+-- Modify the serial for "locations" table
+-- In this case serilas will trigger after 3300
 CREATE SEQUENCE locations_seq
    START WITH 3300
    INCREMENT BY 100
    MAXVALUE 9900
    NOCACHE
    NOCYCLE;
+
 REM ********************************************************************
 REM Create the DEPARTMENTS table to hold company department information.
 REM HR.EMPLOYEES and HR.JOB_HISTORY have a foreign key to this table.
        
-CREATE TABLE departments
-   ( department_id NUMBER(4)
-   , department_name VARCHAR2(30)
-   CONSTRAINT dept_name_nn NOT NULL
-   , manager_id NUMBER(6)
-   , location_id NUMBER(4)
-   ) ;
-CREATE UNIQUE INDEX dept_id_pk
-         ON departments (department_id) ;
-ALTER TABLE departments
-         ADD ( CONSTRAINT dept_id_pk
-   PRIMARY KEY (department_id)
-   , CONSTRAINT dept_loc_fk
-   FOREIGN KEY (location_id)
-   REFERENCES locations (location_id)
-   ) ;
+CREATE TABLE departments (
+    department_id NUMBER(4),
+    department_name VARCHAR2(30)
+    CONSTRAINT dept_name_nn NOT NULL,
+    manager_id NUMBER(6),
+    location_id NUMBER(4)
+    );
+
+-- Make "department_id" unique value
+CREATE UNIQUE INDEX dept_id_pk ON departments (department_id);
+
+-- Make "department_id" PRIMARY KEY and "location_id" FOREIGN KEY
+ALTER TABLE departments ADD (
+    CONSTRAINT dept_id_pk
+    PRIMARY KEY (department_id),
+    CONSTRAINT dept_loc_fk
+    FOREIGN KEY (location_id) REFERENCES locations (location_id)
+    );
+
+DESC departments;
+
 Rem Useful for any subsequent addition of rows to departments table
 Rem Starts with 280 
 CREATE SEQUENCE departments_seq
@@ -90,112 +115,125 @@ CREATE SEQUENCE departments_seq
    MAXVALUE 9990
    NOCACHE
    NOCYCLE;
+
 REM ********************************************************************
 REM Create the JOBS table to hold the different names of job roles within the company.
 REM HR.EMPLOYEES has a foreign key to this table.
-       
-CREATE TABLE jobs
-   ( job_id VARCHAR2(10)
-   , job_title VARCHAR2(35)
-   CONSTRAINT job_title_nn NOT NULL
-   , min_salary NUMBER(6)
-   , max_salary NUMBER(6)
-   ) ;
-CREATE UNIQUE INDEX job_id_pk 
-         ON jobs (job_id) ;
-ALTER TABLE jobs
-         ADD ( CONSTRAINT job_id_pk
-   PRIMARY KEY(job_id)
-   ) ;
+
+-- Create "jobs" table
+CREATE TABLE jobs(
+    job_id VARCHAR2(10),
+    job_title VARCHAR2(35)
+    CONSTRAINT job_title_nn NOT NULL,
+    min_salary NUMBER(6),
+    max_salary NUMBER(6)
+    );
+    
+-- Make "job_id" unique
+CREATE UNIQUE INDEX job_id_pk ON jobs (job_id);
+
+-- Make "job_id" PRIMARY KEY
+ALTER TABLE jobs ADD (
+    CONSTRAINT job_id_pk
+    PRIMARY KEY(job_id)
+    );
+
+DESC jobs;
+
 REM ********************************************************************
 REM Create the EMPLOYEES table to hold the employee personnel 
 REM information for the company.
 REM HR.EMPLOYEES has a self referencing foreign key to this table.
-       
-CREATE TABLE employees
-   ( employee_id NUMBER(6)
-   , first_name VARCHAR2(20)
-   , last_name VARCHAR2(25)
-   CONSTRAINT emp_last_name_nn NOT NULL
-   , email VARCHAR2(25)
-   CONSTRAINT emp_email_nn NOT NULL
-   , phone_number VARCHAR2(20)
-   , hire_date DATE
-   CONSTRAINT emp_hire_date_nn NOT NULL
-   , job_id VARCHAR2(10)
-   CONSTRAINT emp_job_nn NOT NULL
-   , salary NUMBER(8,2)
-   , commission_pct NUMBER(2,2)
-   , manager_id NUMBER(6)
-   , department_id NUMBER(4)
-   , CONSTRAINT emp_salary_min
-   CHECK (salary > 0) 
-   , CONSTRAINT emp_email_uk
-   UNIQUE (email)
-   ) ;
-CREATE UNIQUE INDEX emp_emp_id_pk
-         ON employees (employee_id) ;
-       
-ALTER TABLE employees
-         ADD ( CONSTRAINT emp_emp_id_pk
-   PRIMARY KEY (employee_id)
-   , CONSTRAINT emp_dept_fk
-   FOREIGN KEY (department_id)
-   REFERENCES departments
-   , CONSTRAINT emp_job_fk
-   FOREIGN KEY (job_id)
-   REFERENCES jobs (job_id)
-   , CONSTRAINT emp_manager_fk
-   FOREIGN KEY (manager_id)
-   REFERENCES employees
-   ) ;
-ALTER TABLE departments
-         ADD ( CONSTRAINT dept_mgr_fk
-   FOREIGN KEY (manager_id)
-   REFERENCES employees (employee_id)
-   ) ;
-       
+
+-- Create "employees" table
+-- In this table: minimum salary cannot be less than 0 and email must be unique
+CREATE TABLE employees (
+    employee_id NUMBER(6),
+    first_name VARCHAR2(20),
+    last_name VARCHAR2(25)
+    CONSTRAINT emp_last_name_nn NOT NULL,
+    email VARCHAR2(25)
+    CONSTRAINT emp_email_nn NOT NULL,
+    phone_number VARCHAR2(20),
+    hire_date DATE CONSTRAINT emp_hire_date_nn NOT NULL,
+    job_id VARCHAR2(10)
+    CONSTRAINT emp_job_nn NOT NULL,
+    salary NUMBER(8,2),
+    commission_pct NUMBER(2,2),
+    manager_id NUMBER(6),
+    department_id NUMBER(4),
+    CONSTRAINT emp_salary_min CHECK (salary > 0),
+    CONSTRAINT emp_email_uk UNIQUE (email)
+    );
+
+-- Make "employee_id" unique
+CREATE UNIQUE INDEX emp_emp_id_pk ON employees (employee_id);
+
+-- Make "employee_id" PRIMARY KEY, "department_id" FOREIGN KEY, "job_id" FOREIGN KEY, "manager_id" FOREIGN KEY
+ALTER TABLE employees ADD (
+    CONSTRAINT emp_emp_id_pk
+    PRIMARY KEY (employee_id),
+    CONSTRAINT emp_dept_fk
+    FOREIGN KEY (department_id) REFERENCES departments (department_id),
+    CONSTRAINT emp_job_fk
+    FOREIGN KEY (job_id) REFERENCES jobs (job_id),
+    CONSTRAINT emp_manager_fk
+    FOREIGN KEY (manager_id) REFERENCES employees
+    );
+
+-- Making "employee_id" from "employees" table as the FOREIGN KEY in "departments" table as "manager_id" 
+ALTER TABLE departments ADD (
+    CONSTRAINT dept_mgr_fk
+    FOREIGN KEY (manager_id) REFERENCES employees (employee_id)
+    );
+
+DESC employees;
+
 Rem Useful for any subsequent addition of rows to employees table
 REM Starts with 207 
-       
+
 CREATE SEQUENCE employees_seq
    START WITH 207
    INCREMENT BY 1
    NOCACHE
    NOCYCLE;
+
 REM ********************************************************************
 REM Create the JOB_HISTORY table to hold the history of jobs that 
 REM employees have held in the past.
 REM HR.JOBS, HR_DEPARTMENTS, and HR.EMPLOYEES have a foreign key to this table.
-       
-CREATE TABLE job_history
-   ( employee_id NUMBER(6)
-   CONSTRAINT jhist_employee_nn NOT NULL
-   , start_date DATE
-   CONSTRAINT jhist_start_date_nn NOT NULL
-   , end_date DATE
-   CONSTRAINT jhist_end_date_nn NOT NULL
-   , job_id VARCHAR2(10)
-   CONSTRAINT jhist_job_nn NOT NULL
-   , department_id NUMBER(4)
-   , CONSTRAINT jhist_date_interval
-   CHECK (end_date > start_date)
-   ) ;
-CREATE UNIQUE INDEX jhist_emp_id_st_date_pk 
-         ON job_history (employee_id, start_date) ;
-ALTER TABLE job_history
-         ADD ( CONSTRAINT jhist_emp_id_st_date_pk
-   PRIMARY KEY (employee_id, start_date)
-   , CONSTRAINT jhist_job_fk
-   FOREIGN KEY (job_id)
-   REFERENCES jobs
-   , CONSTRAINT jhist_emp_fk
-   FOREIGN KEY (employee_id)
-   REFERENCES employees
-   , CONSTRAINT jhist_dept_fk
-   FOREIGN KEY (department_id)
-   REFERENCES departments
-   ) ;
+
+-- Create "job_history" table
+CREATE TABLE job_history(
+    employee_id NUMBER(6)
+    CONSTRAINT jhist_employee_nn NOT NULL,
+    start_date DATE
+    CONSTRAINT jhist_start_date_nn NOT NULL,
+    end_date DATE
+    CONSTRAINT jhist_end_date_nn NOT NULL,
+    job_id VARCHAR2(10)
+    CONSTRAINT jhist_job_nn NOT NULL,
+    department_id NUMBER(4),
+    CONSTRAINT jhist_date_interval
+    CHECK (end_date > start_date)
+    );
+
+-- Make "Unique Index" using "employee_id" and "start_date"
+CREATE UNIQUE INDEX jhist_emp_id_st_date_pk ON job_history (employee_id, start_date);
+
+ALTER TABLE job_history ADD (
+    CONSTRAINT jhist_emp_id_st_date_pk
+    PRIMARY KEY (employee_id, start_date),
+    CONSTRAINT jhist_job_fk
+    FOREIGN KEY (job_id) REFERENCES jobs,
+    CONSTRAINT jhist_emp_fk
+    FOREIGN KEY (employee_id) REFERENCES employees,
+    CONSTRAINT jhist_dept_fk
+    FOREIGN KEY (department_id) REFERENCES departments
+    );
+
+DESC job_history;
+
 REM ********************************************************************
 REM Create the EMP_DETAILS_VIEW that joins the employees, jobs, 
 REM departments, jobs, countries, and locations table to provide details
@@ -248,153 +286,47 @@ CREATE OR REPLACE VIEW emp_details_view
    AND c.region_id = r.region_id
    AND j.job_id = e.job_id 
    WITH READ ONLY;
- 
+
+-- Check the "emp_details_view"
+SELECT * FROM emp_details_view;
+
 COMMIT;
+
 ALTER SESSION SET NLS_LANGUAGE=American; 
+
 REM ***************************insert data into the REGIONS table
-INSERT INTO regions VALUES 
-   ( 1
-   , 'Europe' 
-   );
-INSERT INTO regions VALUES 
-   ( 2
-   , 'Americas' 
-   );
-INSERT INTO regions VALUES 
-   ( 3
-   , 'Asia' 
-   );
-INSERT INTO regions VALUES 
-   ( 4
-   , 'Middle East and Africa' 
-   );
+INSERT INTO regions VALUES (1, 'Europe');
+INSERT INTO regions VALUES (2, 'Americas');
+INSERT INTO regions VALUES (3, 'Asia');
+INSERT INTO regions VALUES (4, 'Middle East and Africa');
+
 REM ***************************insert data into the COUNTRIES table
-INSERT INTO countries VALUES 
-   ( 'IT'
-   , 'Italy'
-   , 1 
-   );
-INSERT INTO countries VALUES 
-   ( 'JP'
-   , 'Japan'
-   , 3 
-   );
-INSERT INTO countries VALUES 
-   ( 'US'
-   , 'United States of America'
-   , 2 
-   );
-INSERT INTO countries VALUES 
-   ( 'CA'
-   , 'Canada'
-   , 2 
-   );
-INSERT INTO countries VALUES 
-   ( 'CN'
-   , 'China'
-   , 3 
-   );
-INSERT INTO countries VALUES 
-   ( 'IN'
-   , 'India'
-   , 3 
-   );
-INSERT INTO countries VALUES 
-   ( 'AU'
-   , 'Australia'
-   , 3 
-   );
-INSERT INTO countries VALUES 
-   ( 'ZW'
-   , 'Zimbabwe'
-   , 4 
-   );
-INSERT INTO countries VALUES 
-   ( 'SG'
-   , 'Singapore'
-   , 3 
-   );
-INSERT INTO countries VALUES 
-   ( 'UK'
-   , 'United Kingdom'
-   , 1 
-   );
-INSERT INTO countries VALUES 
-   ( 'FR'
-   , 'France'
-   , 1 
-   );
-INSERT INTO countries VALUES 
-   ( 'DE'
-   , 'Germany'
-   , 1 
-   );
-INSERT INTO countries VALUES 
-   ( 'ZM'
-   , 'Zambia'
-   , 4 
-   );
-INSERT INTO countries VALUES 
-   ( 'EG'
-   , 'Egypt'
-   , 4 
-   );
-INSERT INTO countries VALUES 
-   ( 'BR'
-   , 'Brazil'
-   , 2 
-   );
-INSERT INTO countries VALUES 
-   ( 'CH'
-   , 'Switzerland'
-   , 1 
-   );
-INSERT INTO countries VALUES 
-   ( 'NL'
-   , 'Netherlands'
-   , 1 
-   );
-INSERT INTO countries VALUES 
-   ( 'MX'
-   , 'Mexico'
-   , 2 
-   );
-INSERT INTO countries VALUES 
-   ( 'KW'
-   , 'Kuwait'
-   , 4 
-   );
-INSERT INTO countries VALUES 
-   ( 'IL'
-   , 'Israel'
-   , 4 
-   );
-INSERT INTO countries VALUES 
-   ( 'DK'
-   , 'Denmark'
-   , 1 
-   );
-INSERT INTO countries VALUES 
-   ( 'HK'
-   , 'HongKong'
-   , 3 
-   );
-INSERT INTO countries VALUES 
-   ( 'NG'
-   , 'Nigeria'
-   , 4 
-   );
-INSERT INTO countries VALUES 
-   ( 'AR'
-   , 'Argentina'
-   , 2 
-   );
-INSERT INTO countries VALUES 
-   ( 'BE'
-   , 'Belgium'
-   , 1 
-   );
-       
+INSERT INTO countries VALUES ('IT', 'Italy', 1);
+INSERT INTO countries VALUES ('JP', 'Japan', 3);
+INSERT INTO countries VALUES ('US', 'United States of America', 2);
+INSERT INTO countries VALUES ('CA', 'Canada', 2);
+INSERT INTO countries VALUES ('CN', 'China', 3);
+INSERT INTO countries VALUES ('IN', 'India', 3);
+INSERT INTO countries VALUES ('AU', 'Australia', 3);
+INSERT INTO countries VALUES ('ZW', 'Zimbabwe', 4);
+INSERT INTO countries VALUES ('SG', 'Singapore', 3);
+INSERT INTO countries VALUES ('UK', 'United Kingdom', 1);
+INSERT INTO countries VALUES ('FR', 'France', 1);
+INSERT INTO countries VALUES ('DE', 'Germany', 1);
+INSERT INTO countries VALUES ('ZM', 'Zambia', 4);
+INSERT INTO countries VALUES ('EG', 'Egypt', 4);
+INSERT INTO countries VALUES ('BR', 'Brazil', 2);
+INSERT INTO countries VALUES ('CH', 'Switzerland', 1);
+INSERT INTO countries VALUES ('NL', 'Netherlands', 1);
+INSERT INTO countries VALUES ('MX', 'Mexico', 2);
+INSERT INTO countries VALUES ('KW', 'Kuwait', 4);
+INSERT INTO countries VALUES ('IL', 'Israel', 4);
+INSERT INTO countries VALUES ('DK', 'Denmark', 1);
+INSERT INTO countries VALUES ('HK', 'HongKong', 3);
+INSERT INTO countries VALUES ('NG', 'Nigeria', 4);
+INSERT INTO countries VALUES ('AR', 'Argentina', 2);
+INSERT INTO countries VALUES ('BE', 'Belgium', 1);
+
 REM ***************************insert data into the LOCATIONS table       
 INSERT INTO locations VALUES 
    ( 1000 
@@ -583,8 +515,8 @@ INSERT INTO locations VALUES
        
 REM ****************************insert data into the DEPARTMENTS table
 REM disable integrity constraint to EMPLOYEES to load data
-ALTER TABLE departments 
-   DISABLE CONSTRAINT dept_mgr_fk;
+ALTER TABLE departments DISABLE CONSTRAINT dept_mgr_fk;
+
 INSERT INTO departments VALUES 
    ( 10
    , 'Administration'
@@ -754,7 +686,7 @@ INSERT INTO departments VALUES
    , NULL
    , 1700
    );
-       
+
 REM ***************************insert data into the JOBS table
 INSERT INTO jobs VALUES 
    ( 'AD_PRES'
@@ -2331,44 +2263,36 @@ INSERT INTO job_history
    , 'AC_ACCOUNT'
    , 90
    );
+
 REM enable integrity constraint to DEPARTMENTS
-ALTER TABLE departments 
-   ENABLE CONSTRAINT dept_mgr_fk;
+ALTER TABLE departments ENABLE CONSTRAINT dept_mgr_fk;
+
 COMMIT;
-CREATE INDEX emp_department_ix
-   ON employees (department_id);
-CREATE INDEX emp_job_ix
-   ON employees (job_id);
-CREATE INDEX emp_manager_ix
-   ON employees (manager_id);
-CREATE INDEX emp_name_ix
-   ON employees (last_name, first_name);
-CREATE INDEX dept_location_ix
-   ON departments (location_id);
-CREATE INDEX jhist_job_ix
-   ON job_history (job_id);
-CREATE INDEX jhist_employee_ix
-   ON job_history (employee_id);
-CREATE INDEX jhist_department_ix
-   ON job_history (department_id);
-CREATE INDEX loc_city_ix
-   ON locations (city);
-CREATE INDEX loc_state_province_ix 
-   ON locations (state_province);
-CREATE INDEX loc_country_ix
-   ON locations (country_id);
+
+CREATE INDEX emp_department_ix ON employees (department_id);
+CREATE INDEX emp_job_ix ON employees (job_id);
+CREATE INDEX emp_manager_ix ON employees (manager_id);
+CREATE INDEX emp_name_ix ON employees (last_name, first_name);
+CREATE INDEX dept_location_ix ON departments (location_id);
+CREATE INDEX jhist_job_ix ON job_history (job_id);
+CREATE INDEX jhist_employee_ix ON job_history (employee_id);
+CREATE INDEX jhist_department_ix ON job_history (department_id);
+CREATE INDEX loc_city_ix ON locations (city);
+CREATE INDEX loc_state_province_ix ON locations (state_province);
+CREATE INDEX loc_country_ix ON locations (country_id);
+
 COMMIT;
+
 REM procedure and statement trigger to allow dmls during business hours:
-         CREATE OR REPLACE PROCEDURE secure_dml
-         IS
-         BEGIN
-   IF TO_CHAR (SYSDATE, 'HH24:MI') NOT BETWEEN '08:00' AND '18:00'
-   OR TO_CHAR (SYSDATE, 'DY') IN ('SAT', 'SUN') THEN
-   RAISE_APPLICATION_ERROR (-20205, 
-   'You may only make changes during normal office hours');
-   END IF;
-   END secure_dml;
-   /
+CREATE OR REPLACE PROCEDURE secure_dml
+    IS
+        BEGIN
+        IF TO_CHAR (SYSDATE, 'HH24:MI') NOT BETWEEN '08:00' AND '20:00'
+        OR TO_CHAR (SYSDATE, 'DY') IN ('FRI', 'SAT') THEN
+        RAISE_APPLICATION_ERROR (-20205, 'You may only make changes during normal office hours');
+        END IF;
+    END secure_dml;
+    /
 CREATE OR REPLACE TRIGGER secure_employees
    BEFORE INSERT OR UPDATE OR DELETE ON employees
    BEGIN
@@ -2376,10 +2300,13 @@ CREATE OR REPLACE TRIGGER secure_employees
    END secure_employees;
    /
 ALTER TRIGGER secure_employees DISABLE;
+
 REM **************************************************************************
 REM procedure to add a row to the JOB_HISTORY table and row trigger 
 REM to call the procedure when data is updated in the job_id or 
 REM department_id columns in the EMPLOYEES table:
+
+-- Create a PROCEDURE to insert inherited data from other tables
 CREATE OR REPLACE PROCEDURE add_job_history
    ( p_emp_id job_history.employee_id%type
    , p_start_date job_history.start_date%type
@@ -2389,9 +2316,8 @@ CREATE OR REPLACE PROCEDURE add_job_history
    )
    IS
    BEGIN
-   INSERT INTO job_history (employee_id, start_date, end_date, 
-   job_id, department_id)
-   VALUES(p_emp_id, p_start_date, p_end_date, p_job_id, p_department_id);
+    INSERT INTO job_history (employee_id, start_date, end_date, job_id, department_id)
+    VALUES(p_emp_id, p_start_date, p_end_date, p_job_id, p_department_id);
    END add_job_history;
    /
 CREATE OR REPLACE TRIGGER update_job_history
@@ -2402,36 +2328,38 @@ CREATE OR REPLACE TRIGGER update_job_history
    :old.job_id, :old.department_id);
    END;
    /
+
 COMMIT;
+
 COMMENT ON TABLE regions 
-         IS 'Regions table that contains region numbers and names. Contains 4 rows; references with the Countries table.';
+    IS 'Regions table that contains region numbers and names. Contains 4 rows; references with the Countries table.';
 COMMENT ON COLUMN regions.region_id
-         IS 'Primary key of regions table.';
+    IS 'Primary key of regions table.';
 COMMENT ON COLUMN regions.region_name
-         IS 'Names of regions. Locations are in the countries of these regions.';
+    IS 'Names of regions. Locations are in the countries of these regions.';
 COMMENT ON TABLE locations
-         IS 'Locations table that contains specific address of a specific office,
-         warehouse, and/or production site of a company. Does not store addresses /
-         locations of customers. Contains 23 rows; references with the
-         departments and countries tables. ';
+    IS 'Locations table that contains specific address of a specific office,
+        warehouse, and/or production site of a company. Does not store addresses /
+        locations of customers. Contains 23 rows; references with the
+        departments and countries tables. ';
 COMMENT ON COLUMN locations.location_id
-         IS 'Primary key of locations table';
+    IS 'Primary key of locations table';
 COMMENT ON COLUMN locations.street_address
-         IS 'Street address of an office, warehouse, or production site of a company.
-         Contains building number and street name';
+    IS 'Street address of an office, warehouse, or production site of a company.
+        Contains building number and street name';
 COMMENT ON COLUMN locations.postal_code
-         IS 'Postal code of the location of an office, warehouse, or production site 
-         of a company. ';
+    IS 'Postal code of the location of an office, warehouse, or production site 
+        of a company. ';
 COMMENT ON COLUMN locations.city
-         IS 'A not null column that shows city where an office, warehouse, or 
-         production site of a company is located. ';
+    IS 'A not null column that shows city where an office, warehouse, or 
+        production site of a company is located. ';
 COMMENT ON COLUMN locations.state_province
-         IS 'State or Province where an office, warehouse, or production site of a 
-         company is located.';
+    IS 'State or Province where an office, warehouse, or production site of a 
+        company is located.';
 COMMENT ON COLUMN locations.country_id
-         IS 'Country where an office, warehouse, or production site of a company is
-         located. Foreign key to country_id column of the countries table.';
-       
+    IS 'Country where an office, warehouse, or production site of a company is
+        located. Foreign key to country_id column of the countries table.';
+
 REM *********************************************
 COMMENT ON TABLE departments
          IS 'Departments table that shows details of departments where employees 
